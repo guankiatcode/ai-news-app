@@ -1,8 +1,12 @@
 import { NEWS_SOURCES } from "@/lib/sources";
 import { MobileShell } from "@/components/MobileShell";
 import { TopBar } from "@/components/TopBar";
+import { DataSourceToggle } from "@/components/DataSourceToggle";
+import { getPreferredDataSource } from "@/lib/data-source";
 
-export default function SourcesPage() {
+export default async function SourcesPage() {
+  const selectedSource = await getPreferredDataSource();
+
   return (
     <MobileShell>
       <div className="flex min-h-0 flex-1 flex-col pb-28">
@@ -13,9 +17,9 @@ export default function SourcesPage() {
             Many sources
           </h1>
           <p className="mt-1 text-[14px] leading-relaxed text-neutral-500">
-            Stories are pulled from these feeds, ranked, and capped at 10 per
-            day so reading stays finite.
+            Choose where your daily edition comes from.
           </p>
+          <DataSourceToggle value={selectedSource} />
         </div>
 
         <div className="flex-1 space-y-1 overflow-y-auto px-2 pb-4">

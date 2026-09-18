@@ -30,7 +30,19 @@ export function formatDayLabel(isoDate: string): string {
 }
 
 export function todayKey(now = new Date()): string {
-  return now.toISOString().slice(0, 10);
+  const timeZone = process.env.APP_TIME_ZONE ?? "Asia/Singapore";
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const values = Object.fromEntries(
+    parts
+      .filter(({ type }) => type !== "literal")
+      .map(({ type, value }) => [type, value]),
+  );
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 export function articleCopyText(article: Article): string {

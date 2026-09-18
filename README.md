@@ -26,6 +26,8 @@ these server environment variables locally or in Vercel:
 ```bash
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+# Optional; defaults to Asia/Singapore
+APP_TIME_ZONE=Asia/Singapore
 ```
 
 The table needs these columns:
@@ -76,3 +78,10 @@ Or import the GitHub repo at [vercel.com/new](https://vercel.com/new). No API ke
 | `/archive` | Past days |
 | `/sources` | Feed list |
 | `/api/today` | JSON for today’s edition |
+
+## Choosing a data source
+
+Open `/sources` and choose **Supabase**, **Live RSS**, or **Both**. The choice
+is saved in the browser for one year and applies to the daily page, archive,
+article pages, and `/api/today`. Supabase is selected by default. Both mode
+combines Supabase articles first with unique RSS articles, capped at 10.
