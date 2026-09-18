@@ -52,7 +52,7 @@ function mapArticle(row: ArticleRow): Article {
   };
 }
 
-/** Read a complete edition from Supabase, or return null when unavailable. */
+/** Read the stored edition from Supabase, or return null when unavailable. */
 export async function getSupabaseEdition(
   date: string,
 ): Promise<DailyEdition | null> {
@@ -68,7 +68,7 @@ export async function getSupabaseEdition(
     .order("rank", { ascending: true })
     .limit(10);
 
-  if (error || !data || data.length !== 10) return null;
+  if (error || !data || data.length === 0) return null;
 
   return {
     date,

@@ -45,10 +45,9 @@ The table needs these columns:
 | `key_points` | `jsonb` array of strings |
 | `why_it_matters` | `text`, nullable |
 
-Rows are selected by `date`, ordered by `rank`, and the app only accepts a
-complete set of 10 rows. If Supabase is not configured or unavailable, the app
-falls back to live RSS when Supabase is unavailable. If both sources are
-unavailable, the edition is empty rather than using local mock data.
+Rows are selected by `date` and ordered by `rank`. Any stored rows are shown;
+live RSS is used only when Supabase has no rows for that date. If both sources
+are unavailable, the edition is empty rather than using local mock data.
 
 ## Deploy to Vercel
 
@@ -61,8 +60,8 @@ Or import the GitHub repo at [vercel.com/new](https://vercel.com/new). No API ke
 
 ## How editions work
 
-1. Complete editions are read server-side from Supabase when configured
-2. Otherwise, feeds are fetched server-side from `src/lib/sources.ts`
+1. Stored articles are read server-side from Supabase when configured
+2. If no articles exist for a date, feeds are fetched server-side from `src/lib/sources.ts`
 3. Items are scored by freshness + substance, then capped at 10
 4. Live editions are cached for about an hour (`unstable_cache`)
 5. If both sources fail, the app returns an empty edition for that date

@@ -15,7 +15,7 @@ const getCachedLiveEdition = unstable_cache(
   { revalidate: 3600 },
 );
 
-/** Resolve a day's edition: Supabase, then live RSS. */
+/** Resolve a day's edition: Supabase, then live RSS when no rows are stored. */
 export async function getEdition(date = todayKey()): Promise<DailyEdition> {
   try {
     const stored = await getSupabaseEdition(date);
