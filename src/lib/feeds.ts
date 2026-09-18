@@ -75,6 +75,15 @@ export async function fetchAllSources(): Promise<RawItem[]> {
     seen.add(key);
     unique.push(item);
   }
+  console.log(
+    "[RSS extract]",
+    unique.map(({ source, title, publishedAt, url }) => ({
+      source,
+      title,
+      publishedAt,
+      url,
+    })),
+  );
   return unique;
 }
 

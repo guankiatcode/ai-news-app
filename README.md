@@ -18,6 +18,38 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Supabase data
+
+The app reads complete daily editions from an `articles` table in Supabase. Add
+these server environment variables locally or in Vercel:
+
+```bash
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
+
+The table needs these columns:
+
+| Column | Type |
+|---------|------|
+| `id` | `text` or `uuid` |
+| `date` | `date` or `text` (`YYYY-MM-DD`) |
+| `rank` | `integer` |
+| `title` | `text` |
+| `source` | `text` |
+| `url` | `text` |
+| `published_at` | `timestamptz` or `text` |
+| `read_minutes` | `integer` |
+| `summary_title` | `text` |
+| `summary` | `jsonb` array of strings |
+| `key_points` | `jsonb` array of strings |
+| `why_it_matters` | `text`, nullable |
+
+Rows are selected by `date`, ordered by `rank`, and the app only accepts a
+complete set of 10 rows. If Supabase is not configured or unavailable, the app
+falls back to live RSS when Supabase is unavailable. If both sources are
+unavailable, the edition is empty rather than using local mock data.
+
 ## Deploy to Vercel
 
 ```bash
@@ -29,10 +61,11 @@ Or import the GitHub repo at [vercel.com/new](https://vercel.com/new). No API ke
 
 ## How editions work
 
-1. Feeds are fetched server-side from `src/lib/sources.ts`
-2. Items are scored by freshness + substance, then capped at 10
-3. Live editions are cached for about an hour (`unstable_cache`)
-4. If feeds fail, curated seed editions in `src/lib/seed.ts` keep the app usable
+1. Complete editions are read server-side from Supabase when configured
+2. Otherwise, feeds are fetched server-side from `src/lib/sources.ts`
+3. Items are scored by freshness + substance, then capped at 10
+4. Live editions are cached for about an hour (`unstable_cache`)
+5. If both sources fail, the app returns an empty edition for that date
 
 ## Routes
 

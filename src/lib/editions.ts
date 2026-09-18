@@ -1,6 +1,6 @@
 import { unstable_cache } from "next/cache";
-import { SEED_EDITIONS } from "./seed";
 import { buildLiveEdition } from "./feeds";
+import { getSupabaseEdition, listSupabaseDates } from "./supabase";
 import type { Article, DailyEdition } from "./types";
 import { formatDayLabel, todayKey } from "./types";
 
@@ -9,50 +9,33 @@ function ensureTen(edition: DailyEdition): DailyEdition {
   return { ...edition, articles };
 }
 
-function listSeedDates(): string[] {
-  return Object.keys(SEED_EDITIONS).sort((a, b) => b.localeCompare(a));
-}
-
 const getCachedLiveEdition = unstable_cache(
   async (date: string) => buildLiveEdition(date),
   ["daily-top10-live"],
   { revalidate: 3600 },
 );
 
-/** Resolve a day's edition: live RSS when possible, else curated seed. */
+/** Resolve a day's edition: Supabase, then live RSS. */
 export async function getEdition(date = todayKey()): Promise<DailyEdition> {
-  if (SEED_EDITIONS[date]) {
-    // Prefer live refresh for "today" so sources stay current.
-    if (date === todayKey()) {
-      try {
-        const live = await getCachedLiveEdition(date);
-        if (live && live.articles.length === 10) return ensureTen(live);
-      } catch {
-        // fall through to seed
-      }
-    }
-    return ensureTen(SEED_EDITIONS[date]);
+  try {
+    const stored = await getSupabaseEdition(date);
+    if (stored) return ensureTen(stored);
+  } catch {
+    // fall through to live RSS
   }
 
   try {
     const live = await getCachedLiveEdition(date);
     if (live && live.articles.length === 10) return ensureTen(live);
   } catch {
-    // fall through
+    // fall through to an empty edition
   }
 
-  // Clone nearest seed day and re-stamp ids/date so UI always has 10.
-  const fallbackDate = listSeedDates()[0];
-  const seed = SEED_EDITIONS[fallbackDate];
-  return ensureTen({
+  return {
     date,
     label: formatDayLabel(date),
-    articles: seed.articles.map((article, i) => ({
-      ...article,
-      id: `${date}-${i + 1}`,
-      rank: i + 1,
-    })),
-  });
+    articles: [],
+  };
 }
 
 export async function getArticle(
@@ -69,7 +52,13 @@ export async function listEditionDates(): Promise<
   { date: string; label: string; count: number }[]
 > {
   const today = todayKey();
-  const dates = new Set<string>([today, ...listSeedDates()]);
+  let storedDates: string[] = [];
+  try {
+    storedDates = await listSupabaseDates();
+  } catch {
+    // keep archive available when Supabase is unavailable
+  }
+  const dates = new Set<string>([today, ...storedDates]);
   const editions = await Promise.all(
     [...dates].sort((a, b) => b.localeCompare(a)).map(async (date) => {
       const edition = await getEdition(date);
